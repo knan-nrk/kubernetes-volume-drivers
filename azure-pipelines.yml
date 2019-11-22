@@ -8,6 +8,13 @@ trigger:
 resources:
 - repo: self
 
+schedules:
+- cron: "0 12 * * 0"
+  displayName: Weekly build
+  branches:
+    include:
+    - master
+
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: '3a7aed42-af4f-4e66-8007-8bfc9f9f61c6'
@@ -15,14 +22,14 @@ variables:
   containerRegistry: 'plattform.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/flexvolume/smb/deployment/smb-flexvol-installer/Dockerfile'
   tag: '$(Build.BuildId)'
-  
+
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
 
 stages:
 - stage: Build
   displayName: Build and push stage
-  jobs:  
+  jobs:
   - job: Build
     displayName: Build
     pool:
