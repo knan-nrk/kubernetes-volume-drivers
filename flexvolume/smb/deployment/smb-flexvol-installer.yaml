@@ -27,13 +27,13 @@ spec:
         - name: volplugins
           mountPath: /etc/kubernetes/volumeplugins/
         - name: varlog
-          mountPath: /var/log/      
+          mountPath: /var/log/
       tolerations:
       - operator: "Exists"
       volumes:
       - name: varlog
         hostPath:
-          path: /var/log/              
+          path: /var/log/
       - name: volplugins
         hostPath:
           path: /etc/kubernetes/volumeplugins/
