@@ -1,9 +1,8 @@
 #!/bin/sh
 
 LOG="/var/log/smb-flexvol-installer.log"
-VER="1.0.1-domain"
 target_dir="${TARGET_DIR}"
-echo "begin to install smb FlexVolume driver ${VER} ..." >> $LOG
+echo "begin to install smb FlexVolume driver..." >> $LOG
 
 if [[ -z "${target_dir}" ]]; then
   target_dir="/etc/kubernetes/volumeplugins"
@@ -12,7 +11,8 @@ fi
 smb_vol_dir="${target_dir}/microsoft.com~smb"
 mkdir -p ${smb_vol_dir} >> $LOG 2>&1
 
-#copy smb script
+#copy smb script and replace DNSRESOLVER config from ENV
+sed -i s/DNSRESOLVER_IP/${DNSRESOLVER}/ /bin/smb
 cp /bin/smb ${smb_vol_dir}/smb >> $LOG 2>&1
 chmod a+x ${smb_vol_dir}/smb >> $LOG 2>&1
 

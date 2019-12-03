@@ -7,7 +7,7 @@ DIR=$(dirname "$(readlink -f "$0")")
 JQ="/usr/bin/jq"
 LOG="/var/log/smb-driver.log"
 VER="1.0.1-domain"
-
+DNSRESOLVER=DNSRESOLVER_IP
 usage() {
     err "Invalid usage. Usage: "
     err "\t$0 init"
@@ -42,7 +42,7 @@ mount() {
     USERNAME=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/username"] // empty'|base64 -d)
     PASSWORD=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/password"] // empty'|base64 -d)
     DOMAIN=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/domain"] // empty'|base64 -d)
-
+    echo $(which dig ) >> $LOG 2>&1
     if echo $VOLUME_SRC|grep -Eq "felles|dmz"; then
 
         SMBHOST=$(echo $VOLUME_SRC | cut -d/ -f3)
