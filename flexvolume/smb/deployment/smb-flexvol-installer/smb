@@ -48,7 +48,7 @@ mount() {
         SMBHOST=$(echo $VOLUME_SRC | cut -d/ -f3)
         SMBPATH=$(echo $VOLUME_SRC | cut -d/ -f4)
         SMBIP=$(dig +short $SMBHOST @${DNSRESOLVER}| grep -Eo '[0-9\.]{7,15}' | head -1)
-        VOLUME_SRC="$SMBIP/$SMBPATH"
+        VOLUME_SRC="//$SMBIP/$SMBPATH"
         #echo "$VOLUME_SRC"
     fi
     ALL_OPTIONS="username=${USERNAME},password=${PASSWORD},${READ_MODE}"
