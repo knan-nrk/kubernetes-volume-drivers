@@ -21,7 +21,7 @@ spec:
             configMapKeyRef:
               key: DNSRESOLVER
               name: env-config
-        image: plattform.azurecr.io/plattform/smb-flexvol-installer:1485
+        image: plattform.azurecr.io/plattform/smb-flexvol-installer:1490
         imagePullPolicy: Always
         name: smb-flexvol-installer
         resources: {}

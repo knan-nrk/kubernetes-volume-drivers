@@ -9,7 +9,11 @@
 Nye commits til master bygger automatisk nytt image til plattform.azurecr.io/plattform/smb-flexvol-installer
 
 Sjekk byggid i Azure DevOps og sjekk at Docker imaget er pushet:
-az acr repository show-tags --name plattform --repository plattform/smb-flexvol-installer
+`az acr repository show-tags --name plattform --repository plattform/smb-flexvol-installer`
 
 Deploy endringene når du står i smb-plugin namespace:
-kubectl set image ds/smb-flexvol-installer smb-flexvol-installer=plattform.azurecr.io/plattform/smb-flexvol-installer
+`kubectl set image ds/smb-flexvol-installer smb-flexvol-installer=plattform.azurecr.io/plattform/smb-flexvol-installer`
+
+## Nytt oppsett
+  * [ ] Lag smb-plugin namespace i cluster
+  * [ ] Opprett configmap: `k create configmap env-config --from-literal=DNSRESOLVER=160.68.205.5`
