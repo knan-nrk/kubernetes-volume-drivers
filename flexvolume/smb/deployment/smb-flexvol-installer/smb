@@ -51,8 +51,10 @@ mount() {
         SMBPATH=$(echo $VOLUME_SRC | cut -d/ -f4)
         echo "path = ${SMBPATH}" >> $LOG
         SMBIP=$(dig +short $SMBHOST @${DNSRESOLVER}| grep -Eo '[0-9\.]{7,15}' | head -1)
+        echo "smbip = ${SMBIP}" >> $LOG
         VOLUME_SRC="//$SMBIP/$SMBPATH"
         #echo "$VOLUME_SRC"
+        echo "VOLUME_SRC = ${VOLUME_SRC}" >> $LOG
     fi
     ALL_OPTIONS="username=${USERNAME},password=${PASSWORD},${READ_MODE}"
     if [ -n "$DOMAIN" ]; then
