@@ -4,7 +4,7 @@ metadata:
   labels:
     k8s-app: smb
   name: smb-flexvol-installer
-  namespace: smb-plugin
+  #namespace: smb-plugin
 spec:
   selector:
     matchLabels:

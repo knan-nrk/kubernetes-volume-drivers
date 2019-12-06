@@ -42,8 +42,8 @@ mount() {
     USERNAME=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/username"] // empty'|base64 -d)
     PASSWORD=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/password"] // empty'|base64 -d)
     DOMAIN=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/domain"] // empty'|base64 -d)
-    echo $(which dig ) >> $LOG 2>&1
-    if echo $VOLUME_SRC|grep -Eq "felles|dmz"; then
+
+    if echo $VOLUME_SRC|grep -Eq "felles.ds.nrk.no|dmz.nrk.no"; then
 
         SMBHOST=$(echo $VOLUME_SRC | cut -d/ -f3)
         SMBPATH=$(echo $VOLUME_SRC | cut -d/ -f4)
