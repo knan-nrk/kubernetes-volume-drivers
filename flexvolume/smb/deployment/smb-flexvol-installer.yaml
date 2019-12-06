@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -21,7 +21,7 @@ spec:
             configMapKeyRef:
               key: DNSRESOLVER
               name: env-config
-        image: plattform.azurecr.io/plattform/smb-flexvol-installer:1490
+        image: plattform.azurecr.io/plattform/smb-flexvol-installer:latest
         imagePullPolicy: Always
         name: smb-flexvol-installer
         resources: {}
