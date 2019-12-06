@@ -42,7 +42,7 @@ mount() {
     USERNAME=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/username"] // empty'|base64 -d)
     PASSWORD=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/password"] // empty'|base64 -d)
     DOMAIN=$(echo "$2"|"$JQ" -r '.["kubernetes.io/secret/domain"] // empty'|base64 -d)
-
+    echo "VOLUME_SRC_INIT = ${VOLUME_SRC}" >> $LOG
     if echo $VOLUME_SRC|grep -Eq "felles.ds.nrk.no|dmz.nrk.no"; then
         #//manas01.felles.ds.nrk.no/digital_spedisjon
 
@@ -50,7 +50,7 @@ mount() {
         echo "host = ${SMBHOST}" >> $LOG
         SMBPATH=$(echo $VOLUME_SRC | cut -d/ -f4)
         echo "path = ${SMBPATH}" >> $LOG
-        SMBIP=$(dig +short $SMBHOST @${DNSRESOLVER}| grep -Eo '[0-9\.]{7,15}' | head -1)
+        SMBIP=$(/usr/bin/dig +short $SMBHOST @${DNSRESOLVER}| grep -Eo '[0-9\.]{7,15}' | head -1)
         echo "smbip = ${SMBIP}" >> $LOG
         VOLUME_SRC="//$SMBIP/$SMBPATH"
         #echo "$VOLUME_SRC"
