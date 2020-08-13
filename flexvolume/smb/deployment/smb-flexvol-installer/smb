@@ -1,12 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # Notes:
 #  - Please install "jq" package before using this driver.
 
-DIR=$(dirname "$(readlink -f "$0")")
 JQ="/usr/bin/jq"
 LOG="/var/log/smb-driver.log"
-VER="1.0.1-domain"
 DNSRESOLVER=DNSRESOLVER_IP
 usage() {
     err "Invalid usage. Usage: "
@@ -17,21 +15,64 @@ usage() {
 }
 
 err() {
-    echo `date` "ERROR:" $* >> $LOG
-    echo $* 1>&2
+    echo "$(date) ERROR: $*" >> $LOG
+    echo "$*" 1>&2
 }
 
 log() {
-    echo `date` "INFO:" $* >> $LOG
-    echo $* >&1
+    echo "$(date) INFO: $*" >> $LOG
+    echo "$*" >&1
 }
 
 ismounted() {
-    MOUNT=`findmnt -n ${MNTPATH} 2>/dev/null | cut -d' ' -f1`
-    if echo $MOUNT | grep -q ${MNTPATH}; then
+    MOUNT=$(findmnt -n "${MNTPATH}" 2>/dev/null | cut -d' ' -f1)
+    if echo "$MOUNT" | grep -q "${MNTPATH}"; then
         return 0
     fi
     return 1
+}
+
+with_backoff() {
+  # Retries a command a with backoff.
+  #
+  # The retry count is given by ATTEMPTS (default 5), the
+  # initial backoff timeout is given by TIMEOUT in seconds
+  # (default 1.)
+  #
+  # Successive backoffs double the timeout.
+  #
+  # Beware of set -e killing your whole script!
+  #
+  # Function code stolen from
+  # https://coderwall.com/p/--eiqg/exponential-backoff-in-bash :-)
+
+  local max_attempts=${ATTEMPTS-5}
+  local timeout=${TIMEOUT-1}
+  local attempt=0
+  local exitCode=0
+
+  while [[ $attempt < $max_attempts ]]
+  do
+    "$@"
+    exitCode=$?
+
+    if [[ $exitCode == 0 ]]
+    then
+      break
+    fi
+
+    echo "Failure! Retrying in $timeout.." 1>&2
+    sleep "$timeout"
+    attempt=$(( attempt + 1 ))
+    timeout=$(( timeout * 2 ))
+  done
+
+  if [[ $exitCode != 0 ]]
+  then
+    echo "You've failed me for the last time! ($*)" 1>&2
+  fi
+
+  return $exitCode
 }
 
 mount() {
@@ -46,9 +87,9 @@ mount() {
     if [ -x /usr/bin/dig ]; then
         #//manas01.felles.ds.nrk.no/digital_spedisjon
 
-        SMBHOST=$(echo ${VOLUME_SRC} | cut -d/ -f3)
-        SMBPATH=$(echo $VOLUME_SRC | cut -d/ -f4)
-        SMBIP=$(/usr/bin/dig +short $SMBHOST @${DNSRESOLVER}| grep -Eo '[0-9\.]{7,15}' | head -1)
+        SMBHOST=$(echo "${VOLUME_SRC}" | cut -d/ -f3)
+        SMBPATH=$(echo "$VOLUME_SRC" | cut -d/ -f4)
+        SMBIP=$(/usr/bin/dig +short "$SMBHOST" @"${DNSRESOLVER}"| grep -Eo '[0-9\.]{7,15}' | head -1)
         VOLUME_SRC="//$SMBIP/$SMBPATH"
         echo "VOLUME_SRC = ${VOLUME_SRC}" >> $LOG
     fi
@@ -65,15 +106,15 @@ mount() {
         exit 0
     fi
 
-    echo "`date` EXEC: mkdir -p ${MNTPATH}" >> $LOG
-    mkdir -p ${MNTPATH} >>$LOG 2>&1
+    #shellcheck disable=SC2129
+    echo "$(date) EXEC: mkdir -p ${MNTPATH}" >> $LOG
+    mkdir -p "${MNTPATH}" >>$LOG 2>&1
 
     #mounting
-    echo "`date` EXEC: /bin/mount -t cifs ${VOLUME_SRC} ${MNTPATH}" >>$LOG
+    echo "$(date) EXEC: /bin/mount -t cifs ${VOLUME_SRC} ${MNTPATH}" >>$LOG
 
-    /bin/mount -t cifs "${VOLUME_SRC}" "${MNTPATH}" -o "${ALL_OPTIONS}" >>$LOG 2>&1
-    if [ $? -ne 0 ]; then
-        errorLog=`tail -n 1 "${LOG}"`
+    if /bin/mount -t cifs "${VOLUME_SRC}" "${MNTPATH}" -o "${ALL_OPTIONS}" >>$LOG 2>&1 ; then
+        errorLog=$(tail -n 1 "${LOG}")
         err "{ \"status\": \"Failure\", \"message\": \"Failed to mount device ${DMDEV} at ${MNTPATH}, user:${USERNAME}, ${VOLUME_SRC}, error log:${errorLog}\" }"
         exit 1
     fi
@@ -88,14 +129,13 @@ unmount() {
         exit 0
     fi
 
-    echo "`date` EXEC: umount $MNTPATH" >>$LOG
-    umount "${MNTPATH}" >>$LOG 2>&1
-    if [ $? -ne 0 ]; then
-        errorLog=`tail -n 1 "${LOG}"`
+    echo "$(date) EXEC: umount $MNTPATH" >>$LOG
+    if umount "${MNTPATH}" >>$LOG 2>&1; then
+        errorLog=$(tail -n 1 "${LOG}")
         err "{ \"status\": \"Failed\", \"message\": \"Failed to unmount volume at ${MNTPATH}, error log:${errorLog}\" }"
         exit 1
     fi
-    echo "`date` EXEC: rmdir ${MNTPATH}" >> $LOG
+    echo "$(date) EXEC: rmdir ${MNTPATH}" >> $LOG
     rmdir "${MNTPATH}" >> $LOG 2>&1
 
     log '{"status": "Success"}'
@@ -117,10 +157,10 @@ shift
 
 case "$op" in
     mount)
-        mount $*
+        with_backoff mount "$*"
         ;;
     unmount)
-        unmount $*
+        with_backoff unmount "$*"
         ;;
     *)
         usage
